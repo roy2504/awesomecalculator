@@ -41,4 +41,4 @@ class CalculatorTests(unittest.TestCase):
         # Act
         result = calculator.Divide(operator1, operator2)
         # Assert
-        self.assertEqual(expected, result, "divide method doesn't work!")        
+        self.assertEqual(expected, result, "divide method doesn't work!!")        
