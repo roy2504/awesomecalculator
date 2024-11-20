@@ -1,4 +1,3 @@
-# GitHub CI build pipeline
 name: Awesome Calculator CI build
 
 on:
@@ -10,42 +9,61 @@ on:
     branches:
       - master
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Install dependencies
-      run: |
-        cd src
-        python -m pip install --upgrade pip
-        pip install coverage
-        if  [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Run Unit Tests and generate coverage report
-      run: |
-        cd src
-        python -m unittest -v
-        coverage run -m unittest
-        coverage report
-        coverage html
-    - name: Archive code coverage html report
-      uses: actions/upload-artifact@v2
-      with:
-        name: code-coverage-report
-        path: src/htmlcov
-    - name: Run package creation
-      run: |
-        cd src
-        python -m pip install --user --upgrade build
-        python -m build
-    - name: Archive package
-      uses: actions/upload-artifact@v2
-      with:
-        name: awesome-calculator
-        path: src/dist    
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          cd src
+          python -m pip install --upgrade pip
+          pip install coverage
+          if  [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run Unit Tests and generate coverage report
+        run: |
+          cd src
+          python -m unittest -v
+          coverage run -m unittest
+          coverage report
+          coverage html
+      - name: Archive code coverage html report
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: src/htmlcov
+      - name: Run package creation
+        run: |
+          cd src
+          python -m pip install --user --upgrade build
+          python -m build
+      - name: Archive package
+        uses: actions/upload-artifact@v2
+        with:
+          name: awesome-calculator
+          path: src/dist # Make sure this is where the .whl file is located
 
+  install-package:
+    needs: build # Ensures this job runs after the build job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
 
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: awesome-calculator
+          path: dist # Path should match where the artifact was uploaded (src/dist in the build job)
+
+      - name: Install downloaded wheel package
+        run: |
+          pip install dist/*.whl  # Make sure the downloaded .whl file is installed
